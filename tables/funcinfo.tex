@@ -1,0 +1,70 @@
+\begin{longtable}{|l|l|l|l|l|l|}
+    \toprule
+    Function Label (F) & Function Name            &  min f(x)      & Unimodal? & Separable? \\
+    \specialrule{1.5pt}{1pt}{1pt}
+    \endhead
+    F1               & Ackley               &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ -20\exp(-0.2\sqrt{\frac{1}{n}\sum_{i=1}^{n}x_i^2})-\exp(\frac{1}{n}\sum_{i=1}^{n}\cos(2\pi x_i))+ 20 + e$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F2               & Bohachevsky2         &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^{d-1} \left[ x_i^2 + 2x_{i+1}^2 -0.3\cos(3\pi x_i)\cos(4\pi x_{i+1})+0.3 \right]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F3               & Bohachevsky3         &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^{d-1} \left[ x_{i+1}^2 + 2x_{i+2}^2 -0.3\cos(3\pi x_i+4\pi x_{i+1})+0.3 \right]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F4               & Bukin6               &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$100\sqrt{|x_2 - 0.01x_1^2|} + 0.01|x_1+10|$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F5               & DropWave             &  -1             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  -\frac{1+\cos(12\sqrt{x_1^2+x_2^2})}{0.5(x_1^2+x_2^2) + 2}$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F6               & Eggholder     &  -959.6407     & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  -(x_2 + 47) \sin(\sqrt{|x_2 + \frac{x_1}{2} +47|}) - x_1\sin(\sqrt{|x_1-(x_2+47)|})$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F7               & GoldSteinPrice        &  3             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$[1 + (x_1 + x_2 + 1)^2(19 - 14x_1+3x_1^2- 14x_2 + 6x_1x_2 + 3x_2^2)] \times$} \\ 
+    \multicolumn{5}{|l|}{$[30 + (2x_1 - 3x_2)^2(18 - 32x_1 + 12x_1^2 + 4x_2 - 36x_1x_2 + 27x_2^2)]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F8               & Griewank              &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$1 + \sum_{i=1}^d \frac{x_i^2}{4000} - \prod_{i=1}^d \cos(\frac{x_i}{\sqrt{i}})$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F9               & McCormick      &  -1.9133       & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  \sin(x_1+x_2) + (x_1-x_2)^2 - 1.5x_1 + 2.5x_2 + 1$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F10              & Perm                &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^d (\sum_{j1}^d (j^i + 0.5) ((\frac{x_j}{j})^i - 1))^2$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F11              & Schaffer2            &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  0.5 + \frac{\sin^2 (\sqrt{x_1^2 + x_2^2}) - 0.5}{1 + 0.0001(\sqrt{x_1^2 + x_2^2})^2}$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F12              & Schaffer4            &  0             & \ding{55}        & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  0.5 + \frac{\cos(\sin(x_1^2 + x_2^2)) - 0.5}{(1 + 0.0001(x_1^2 + x_2^2))^2}$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F13              & Bohachevsky1          &  0             & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^{d-1} x_i^2 + 2x_{i+1}^2 -0.3\cos(3\pi x_i)-0.4\cos(4\pi x_{i+1})+0.7$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F14              & Booth                &  0             & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$(x_1+2x_2-7)^2+(2x_1+x_2-5)^2$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F15              & Branin        &  0.397887      & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$  (x_2 - 
+    \frac{5.1}{4\pi^2}x_1^2 + \frac{5}{\pi}x_1^2 - 6)^2 + 10(1-\frac{1}{8\pi}\cos x_1 + 10$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F16              & Michalewicz5 &  -4.687658     & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ -\sum_{i=1}^5 \sin(x_i) \sin^{20} (\frac{ix_i^2}{\pi})$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F17              & Rastrigin           &  0             & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ 10d + \sum_{i=1}^d [x_i^2 - 10\cos(2\pi x_i)]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F18              & Shubert        &  -186.73       & \ding{55}        & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ \prod_{j=1}^2 (\sum_{i=1}^5 i \cos((i+1)x_j + i))$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F19              & Beale               &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  (1.5-x_1+x_1x_2)^2+(2.25-x_1+x_1x_2^2)^2+(2.625-x_1+x_1x_2^3)^2$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F20              & Colville             &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ 100(x_1^2-x_2^2)^2 + (x_1-1)^2 + (x_3-1)^2 + 90(x_3^2-x_4)^2$} \\
+    \multicolumn{5}{|l|}{$+ 10.1(x_2-1)^2 + (x_4-1)^2 + 19.8(x_2-1)(x_4-1)$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F21              & DixonPrice            &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ (x_1-1)^2 + \sum_{i=2}^d i(2x_i^2-x_{i-1})^2$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F22              & Easom                &  -1            & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  -\cos(x_1)\cos(x_2)\exp (-(x_1-\pi)^2-(x_2-\pi)^2)$)} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F23              & Matyas                &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$  0.26(x_1^2 + x_2^2) - 0.48x_1x_2$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F24              & Powell                &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^{d/4} [(x_{4i-3} + 10x_{4i-2})^2 + 5(x_{4i-1} - x_{4i})^2 + (x_{4i-2} - 2x_{4i-1})^4 + 10(x_{4i-3} - x_{4i})^4]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F25              & Rosenbrock           &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^{d-1} [100(x_{i+1} - x_i^2)^2 + (x_i - 1)^2]$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F26              & Schwefel &  -418.9829d    & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ 418.9829d - \sum_{i=1}^d x_i \sin(\sqrt{|x_i|})$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F27              & Trid6 &  -d(d+4)(d-1)/6 & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^d (x_i - 1)^2 - \sum_{i=1}^d x_ix_{i-1}$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F28              & Zakharov              &  0             & \ding{51}       & \ding{55}         \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^d x_i^2 + (\sum_{i=1}^d 0.5ix_i)^2 + (\sum_{i=1}^d 0.5ix_i)^4$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F29              & Sphere              &  0             & \ding{51}       & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^d x_i^2$} \\ \specialrule{1.5pt}{1pt}{1pt}
+    F30              & Sumsquare            &  0             & \ding{51}       & \ding{51}        \\ \midrule
+    \multicolumn{5}{|l|}{$ \sum_{i=1}^d ix_i^2$} \\
+    \bottomrule
+    \end{longtable}

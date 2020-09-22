@@ -1,0 +1,773 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{cite}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage{amsmath}
+\usepackage{centernot}
+\usepackage{amssymb}
+\usepackage{braket}
+\usepackage{setspace}
+\usepackage{commath}
+\usepackage{stackengine}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage[english]{babel}
+\usepackage{amsthm}
+\usepackage[bookmarks=true]{hyperref}
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{diagbox}
+\usepackage[inline, shortlabels]{enumitem}
+\usepackage[ruled]{algorithm}
+\usepackage[font=small]{caption}
+\usepackage{pifont}
+\usepackage{pdflscape}
+\usepackage{url}
+% \usepackage{lineno}
+
+% \linenumbers
+
+\aboverulesep=0ex
+\belowrulesep=0ex
+
+\renewcommand{\thealgorithm}{}
+
+\usetikzlibrary{positioning}
+\pgfplotsset{compat=1.6}
+\graphicspath{ {./images/} }
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\pgfplotsset{soldot/.style={color=blue,only marks,mark=*}} \pgfplotsset{holdot/.style={color=blue,fill=white,only marks,mark=*}}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{\text{Var}}
+\newcommand{\normm}[1]{\left\lVert#1\right\rVert}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\mb}[1]{\mathbf{#1}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+ 
+\newtheorem*{remark}{Remark}
+
+\renewcommand\qedsymbol{$\blacksquare$}
+
+\title{Particle Swarm Optimisation and its Enhancements and Variants: A Comparative Study}
+\author{Enzio Kam Hai Hong}
+\date{2019/2020}
+
+\doublespacing
+
+\begin{document}
+
+\begin{center}
+    \singlespacing
+	\vspace*{-0.5cm}
+
+    \includegraphics[scale=0.5]{images/nus_logo.png}
+    
+    \vspace{3cm}
+    
+	\textbf{\large Particle Swarm Optimisation and its Enhancements and Variants: A Comparative Study}
+	
+	\vspace{3cm}
+	
+    \textbf{\large By \\ \vspace{0.5cm} \large Enzio Kam Hai Hong}
+    
+    \vspace{3cm}
+    
+    \textbf{\large Supervisor: \\ \vspace{0.5cm} Professor Choi Kwok Pui}
+    
+    \vspace{3cm}
+    
+    \textbf{\large 
+        ST4199 Honours Project in Statistics \\
+        Department of Statistics and Applied Probability \\
+        National University of Singapore \\
+        2019/2020
+    }
+    
+\end{center}
+
+% \newpage
+% \section*{Acknowledgement}
+% Fill acknowledgement.
+
+\newpage
+\begin{abstract}
+We study a special class of metaheuristic stochastic optimization algorithms: Particle Swarm Optimization (PSO) and its two enhancements, namely, Smoothed Particle Swarm Optimization (sPSO) and Apdative Smoothed Particle Swarm Optimization (aPSO). Two additional tuning parameters $\eta$ and $\sigma$ are introduced in the sPSO. Firstly, the project seeks to identify good choices of these two tuning parameters in sPSO via massive simulation studies. Secondly, the project discussed the theoretical properties of the algorithms, followed by numerical studies to compare their performance and empirical convergence. Lastly, we also compare PSO, sPSO, aPSO against two popular PSO variants, namely, Competitive Swarm Optimiser (CSO) and Quantum-behaved Particle Swarm Optimisation (QPSO), on a large class of 30 test functions.
+
+\newpage
+
+\begin{center}
+    \textbf{Statement of contributions}
+\end{center}
+MATLAB code for the CSO algorithm was adapted from code by Cheng and Jin \cite{chengjin2015}. MATLAB code for the PSO, sPSO and aPSO algorithms was built on work from Tong from Choi et. al \cite{choi2020}, and code for QPSO was my own contribution based on the same structure. Numerical simulations and the interpretation of the respective results found in Section \ref{subsection:number of particles}, Section \ref{subsection:parameter choices}, Section \ref{subsection:empirical convergence} and the entire of Section \ref{section:comparative studies} was my own contribution. The alternative perspective of the sPSO particle velocity update step in Section \ref{subsection:spso algorithm} and comparison with constriction factors \cite{Clerc2002ThePS} was my own contribution.
+\end{abstract}
+
+\newpage
+\tableofcontents
+
+\newpage
+\section{Introduction}
+Metaheuristic algorithms are algorithms used to find an estimate to the global optimal solution in an optimisation problem by introducing a heuristic, a technique or a procedure designed for solving this problem. There are several ways of classifying metaheuristic algorithms \cite{BlumRoli2001}, such as \textit{nature inspired versus non-nature inspired}, \textit{population based versus single solution based}, among others. Metaheuristic algorithms have applications in many domains, such as in NP-Hard combinatorial problems \cite{Ouaarab2014, Said2014}, machine learning \cite{10.1007/978-3-642-22185-9_6} and other mathematical applications \cite{Sadollah2015ApproximateSO}, and practical real-world applications in engineering \cite{YANG20131, GOPALAKRISHNAN201349}. \newline
+
+Most metaheuristic algorithms are characterised by some general properties \cite{BlumRoli2001}. The algorithms
+\begin{enumerate*}[(i)]
+    \item are strategies that guide the search process,
+    \item explore the defined search space to find an estimate of the optimal solution,
+    \item can be simple local search procedures, or have complicated approaches,
+    \item are usually not deterministic, and have a random component, and
+    \item are not limited to any class of problems including both continuous and combinatorial optimisation problems.
+\end{enumerate*}
+Examples of metaheuristic algorithms include the Particle Swarm Optimisation \cite{kennedy95particle}, Tabu Search \cite{doi:10.1287/ijoc.1.3.190, doi:10.1287/ijoc.2.1.4}, Cuckoo Search \cite{yangdeb2009}, Ant Colony Optimisation \cite{dorigo1996}, Differential Evolution \cite{Storn1997} and Genetic Algorithms \cite{holland1992}. \newline
+
+Nature inspired metaheuristic algorithms are metaheuristic algorithms that use naturally occurring phenomena or biological processes as the main idea for the algorithm. Swarm-based metaheuristic algorithms try to model swarm intelligence in some organisms that exhibit social interaction or collective behavior. For example, Cuckoo Search makes use of the idea of Obligate Brood Parasitism in Cuckoo family of birds, where some species of Cuckoo birds lay their eggs in the nests of other bird species. Some other algorithms try to model some of the biological processes of organisms. For example, Genetic Algorithms try to mimic the natural selection processes such as mutation, chromosomal crossover and breeding.
+
+% In this project, we will focus on Particle Swarm Optimisation, it's enhancements, and two other variants of Particle Swarm Optimisation, Competitive Swarm Optimiser \cite{chengjin2015} and Quantum-behaved Particle Swarm Optimisation \cite{sun2004}.
+
+\subsection{Exploration-Exploitation Tradeoff}
+In many metaheuristic algorithms, the algorithm will search for or generate new candidate solutions to the optimisation problem within the defined search space, and also use existing information to improve the currently available candidate solutions. These two processes are often referred to as exploration and exploitation respectively. Balancing exploration and exploitation is usually known as the \textit{Exploration-Exploitation Tradeoff}. One way of interpreting exploration versus exploitation is to see it as doing a global search versus a local search \cite{xu2014}. The \textit{Exploration-Exploitation Tradeoff} is an important consideration when trying to achieve optimal or close to optimal solutions. An overemphasis on exploration would mean spending too much time searching across the entire search space, while an overemphasis on exploitation could result in spending too much time in a region with sub-optimal solutions. The concept of exploration versus exploitation is not unique to metaheuristic algorithms, and is also used in reinforcement learning and the multi-armed bandit problem \cite{10.1287/moor.22.1.222}. \newline
+
+The control of the \textit{Exploration-Exploitation Tradeoff} is often determined by the value of the algorithm's parameters. Many metaheuristic algorithms make use of the algorithm parameters to balance between exploration and exploitation such as crossover and mutation probabilities in Genetic Algorithms, the inertia weight and social and cognitive coefficients in Particle Swarm Optimisation and the perturbation strength in Iterated Local Search \cite{Lourenco2003}. \newline
+
+The rest of this thesis is organised as follows. Section 2 will introduce Particle Swarm Optimisation, followed by Section 3 which discusses two variants of Particle Swarm Optimisation, Competitive Swarm Optimiser \cite{chengjin2015} and Quantum-behaved Particle Swarm Optimisation \cite{sun2004}, and Section 4 which will introduce two enhancements to Particle Swarm Optimisation \cite{choi2020}. Lastly, Section 5 will discuss the numerical results obtained from experiments on all the algorithms discussed.
+
+\newpage
+
+\section{Particle Swarm Optimisation}
+\subsection{Introduction to Particle Swarm Optimisation}
+Particle Swarm Optimisation (PSO) introduced by Kennedy and Eberhart (1995) \cite{kennedy95particle} is a metaheuristic algorithm that is inspired by animal populations with swarm intelligence. The original aim of PSO was to simulate the social behavior and movement of animal populations. The algorithm emulates the interaction between individual members of the population with other members of the population in their algorithm, or the entire population as a whole, along with the fact that each individual member of the population may also make their own movements that are independent of the population. PSO can be viewed as analogous to a flock of birds trying to search for food. The birds will all fly towards the location where the flock as a whole believes the location of the food is, but each bird may also have their own individual belief of where the location of the food is, and their movement is influenced by both of these factors. \newline
+
+Each individual in the population, or \textit{particle}, represents a candidate solution to the optimisation problem in the algorithm. The swarm is thus the collection of all the particles, specifically the particle positions, representing the collection of candidate solutions. Particles are compared by their fitness, usually the objective function itself. In a minimisation problem, a lower value of the objective function would mean that a particular position is better. Each particle will store its current position, the best position ever attained up to this point, and it's ``momentum'' or velocity. The swarm as a whole will also record the best attained position for all the particles in the swarm up to this point. \newline
+
+The PSO algorithm finds an estimate of the global optimal solution by iteratively moving the particles to new positions to improve the solutions. The movement for each particle is based on its individual best position, the overall best position of all particles in the swarm, and the particle's velocity. Every time a particle moves, it will also update its velocity, previous best position, and the swarm's best position. After the conclusion of the algorithm, the swarm's best position will denote the global best position that obtains the lowest fitness value. \newline
+
+PSO and its variants have been used in a wide array of applications ranging across many diverse fields, such as in biomedical applications, machine learning, engineering, and combinatorial optimisation \cite{poli2008}. Some specific examples include cancer detection \cite{Selvan2006ParameterEI}, biometric management \cite{10.1109/TSMCC.2005.848191}, classification problems \cite{falco2007}, optimisation of Support-Vector Machine parameters \cite{cho2017}, solving the state estimation problem \cite{Tungadio2015ParticleSO}, approximating solutions for the Travelling Salesman Problem \cite{wang2003}, and clustering problems for images \cite{Omran2005ParticleSO}.
+
+\subsection{PSO Algorithm, Parameters and its Applications}
+\label{subsection:pso algorithm}
+Let $f:\mathbb{R}^d \rightarrow \mathbb{R}$ be the function to be minimised, where $f$ is often called the objective function. (In a maximisation problem, we can negate $f$ and turn it into a minimisation problem.) PSO attempts to solve the minimisation problem $\underset{\mb{x}}{\min} f(\mb{x})$. Let $p$ be the number of particles in the PSO algorithm. For every particle $i$, we denote the particle position by $\mb{x}_i = \left( x_{i,1}, x_{i,2}, \hdots , x_{i,d} \right)^T \in \mathbb{R}^d$, the particle velocity by $\mb{v}_i = \left( v_{i,1}, v_{i,2}, \hdots , v_{i,d} \right)^T \in \mathbb{R}^d$, and the individual best position by $\mb{x}^b_i = \left( x^b_{i,1}, x^b_{i,2}, \hdots , x^b_{i,d} \right)^T \in \mathbb{R}^d$. Here, $x_{i,j}$ and $v_{i,j}$ represent the $i^\text{th}$ particle position and velocity for the $j^\text{th}$ dimension respectively. Similarly, $x^b_{i,j}$ represents the $i^\text{th}$ particle's best position for the $j^\text{th}$ dimension. The global best position is denoted by $\mb{x}^g = \left( x^g_1, x^g_2, \hdots , x^g_d \right)^T \in \mathbb{R}^d$, with $x^g_j$ representing the $j^\text{th}$ dimension of the global best position. \newline
+
+We define the search space using two vectors, $\boldsymbol{\ell} = \left( \ell_1, \ell_2, \hdots , \ell_d \right)^T, \mb{r} = \left( r_1, r_2, \hdots , r_d \right)^T \in \mathbb{R}^d$, where for $i = 1, \ \hdots, d, \ \ell_i < r_i$, representing the upper and lower bounds of the search space at each dimension. Thus, we can define the search space as the closed and bounded set $\mathcal{D} = \{\mb{x} \in \mathbb{R}^d: \ell_i \leq x_i \leq r_i, \ i = 1, \hdots , d \}$. The PSO algorithm is given in Algorithm \ref{alg:pso}.
+
+\begin{figure}[H]
+    \renewcommand\figurename{Algorithm}
+    \begin{algorithm}[H]
+        \singlespacing
+        \caption{Particle Swarm Optimisation}
+        \begin{algorithmic}[1]
+            \For{$i = 1$ to $p$}
+                \State{Initialise initial position, $\mb{x}_i$}
+                \State{Initialise particle velocity, $\mb{v}_i$}
+                \State{Set particle best position to initial position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                    \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                \EndIf
+            \EndFor
+    
+            \While{termination condition not reached}
+                \For{$i = 1$ to $p$}
+                    \For{$j = 1$ to $d$}
+                        \State{Generate $u_{b,j}, u_{g,j} \overset{i.i.d.}{\sim} U(0, 1)$}
+                        \State{Update particle velocity $v_{i,j}$}
+                    \EndFor
+                    \State{Update particle position $\mb{x}_i \leftarrow \mb{x}_i + \mb{v}_i$}
+                    \If{$f(\mb{x}_i) < f(\mb{x}^b_i)$}
+                        \State{Update particle best position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                        \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                            \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                        \EndIf
+                    \EndIf
+                \EndFor
+            \EndWhile
+        \end{algorithmic}
+    \end{algorithm}
+    \caption{The general procedure for the PSO algorithm based on  Kennedy and Eberhart (1995).}
+    \label{alg:pso}
+\end{figure}
+
+The initial positions $\mb{x}_i$ are generated with independent and identically distributed (i.i.d.) uniform random variables over the search space, where for $j = 1, \hdots, d, x_{i,j} \overset{i.i.d.}{\sim} U(\ell_j, r_j)$. The initialisation of particle velocities are similarly uniform random variables, where for $j = 1, \hdots, d, \ v_{i,j} \overset{i.i.d.}{\sim} U(-(r_j - \ell_j), \ r_j - \ell_j)$. \newline
+
+The updating of the particle velocity is as follows:
+$$v_{i,j} \leftarrow v_{i,j} + c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) +  c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j})$$
+where $c_1, c_2 > 0$ are the cognitive coefficient and social coefficient respectively. Coefficient $c_1$ represents how much a particle depends on its previous best experience, and coefficient $c_2$ represents how much a particle interacts with the rest of the swarm. The second and third terms in the update thus represent the cognitive and social components of the particle respectively. \newline
+
+Experience shows that the velocities $v_{i,j}$ could become arbitrarily large. An extension proposed by Shi and Eberhart \cite{shieberhart1998} for PSO has the following velocity update procedure which has become the standard PSO algorithm:
+$$v_{i,j} \leftarrow w \cdot v_{i,j} + c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) +  c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j})$$
+where $w > 0$ is the inertia weight. The inertia weight $w$ attempts to control the magnitude of the previous velocity that contributes to the new velocity, preventing the velocity from growing to become extremely large. \newline
+
+Another proposed method to control the velocity is due to Clerc and Kennedy \cite{Clerc2002ThePS, eberhartshi2000} who introduced a constriction factor that scales all the terms by a coefficient $K$:
+$$v_{i,j} \leftarrow K \cdot \left[ v_{i,j} + c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) +  c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j}) \right]$$
+where $K = \frac{2}{\lvert 2 - \phi - \sqrt{\phi^2 - 4\phi} \rvert}$ and $\phi = c_1 + c_2, \ \phi > 4$. Unlike the introduction of the inertia weight, the value $K$ scales all the terms used for velocity update instead of just the previous velocity. \newline
+
+Several numerical studies have been done that investigated the choice of the parameters $w, c_1$ and $c_2$. Some recommended choices of parameters include $w = 0.729, \ c_1 = c_2 = 1.49445 (\approx 1.5)$ \cite{eberhartshi2000} and $w = 0.6, c_1 = 1.7, c_2 = 1.7$ \cite{TRELEA2003317}. Some schemes of adaptive parameter selection were also proposed, such as linearly decreasing the inertia weight over time \cite{10.1007/BFb0040810}, a fuzzy system to select the inertia weight \cite{shieberhart2001}, and a stability-based adaptive scheme to change the inertia weight and acceleration coefficients over time \cite{TAHERKHANI2016281}. \newline
+
+Many variants of the original PSO algorithm have been proposed. Coelho \cite{10.1007/3-540-32400-3_22} replaced the uniform random variables in the velocity update with several types of combinations of cauchy, normal and uniform random variables. A variant by Shi and Eberhart \cite{shieberhart1998} sets the inertia weight $w$ as a function of time instead of a constant. CenterPSO by Liu et al. \cite{LIU2007672} uses one particle as a \textit{center position} which has no velocity, and is updated by taking the mean of all other updated particles. In particular, Section \ref{section:related swarm algo} will cover two of these PSO variants: Competitive Swarm Optimiser and Quantum-behaved Particle Swarm Optimisation.
+
+\subsection{Effect of Number of Particles}
+\label{subsection:number of particles}
+In the PSO algorithm, one aspect to consider during initialisation is the number of particles to be used. El-Gallad et. al \cite{El-Gallad2002} considered the effect of the number of particles on the performance of the PSO, showing that increasing the number of particles from 10 to 50 resulted in improved performance of PSO on their test function. \newline
+
+We investigated the effect of increasing the number of particles on the performance of the PSO algorithm. A total of 4 test functions are considered here, with their corresponding dimensions. PSO was run for 100 repetitions, each of 100,000 iterations, for each function-dimension pair to obtain the estimates of the global minimum, and repeated for different number of particles. Specifically, the number of particles considered are 32, 64, 128 and 256. We calculated the mean and standard deviation of the estimates from the 100 runs and the results are shown in Table \ref{tab:particle table}.
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \input{tables/particles.tex}
+    }
+    \caption{Table of 4 test functions and their corresponding dimension, with the averaged results of 100 repetitions for 100,000 iterations of PSO with differing number of particles. For all the 4 functions, the global minimum is 0. The first value in each cell is the mean, followed by the standard deviation given in brackets.}
+    \label{tab:particle table}
+\end{table}
+
+We can see from the results that at a lower dimension, the effect of increasing the number of particles is much smaller in general. For example, there is no change in the results for Bohachevsky1 at dimension 5 and Schaffer4 at dimension 2 as the number of particles increase. At a higher dimension, increasing the number of particles generally improves the performance of PSO, as seen for Bohachevsky1 and Rastrigin at dimension 20 and 40. However, the results for the Rosenbrock function does not exactly follow the trend seen in the other test functions. At dimension 10, the mean increases from 32 particles to 64 particles, before decreasing from 64 particles to 256 particles. At dimension 40, the mean increases from 32 particles to 256 particles. \newline
+
+The results in Table \ref{tab:particle table} seem to suggest that choosing the number of particles for PSO is dependent on the dimension of the objective function to be optimised. In general, a objective function with a higher dimension should have a greater number of particles initialised for the PSO. However, it is still important to consider the objective function itself when choosing the number of particles, since the general trend may not be true for all functions.
+
+\subsection{Non-convergence of PSO}
+\label{subsection:pso non-convergence}
+The PSO algorithm has certain advantages such as being easy to implement, having a relatively lower number of parameters to determine, and being not very computationally intensive due to the fact that it does not require the computation of any derivatives. However, there are some disadvantages of PSO, such as the fact that it suffers from the \textit{Curse of Dimensionality} \cite{Bellman:1957, chen2015} if the dimension of the objective function increases, where the size of the search space for the algorithm grows exponentially, which can affect the convergence of PSO. \newline
+
+The main disadvantage of PSO is that the global best solution may not converge to the global minimum. Several previous studies on the convergence of the PSO algorithm had been done with assumptions that simplified the algorithm greatly. Trelea (2003) \cite{TRELEA2003317} discussed the PSO algorithm and a proof of convergence which considers only the univariate setting and a deterministic version of the PSO by replacing the uniform random variables with constants $0.5$, and replacing the social and cognitive coefficients with their average, followed by a qualitative discussion of the relationship between the deterministic and original version of PSO.  {\"O}zcan and Mohan (1998) \cite{ozcan1998analysis} discusses a proof of a simplified version of the PSO algorithm in the univariate setting with only a single particle, with the global best position and personal best position being equal and constant, and only one set of uniform random variables is generated and used throughout the entire algorithm. The assumptions here are strong assumptions that will not likely hold true for most applications of PSO. \newline
+
+Yuan and Yin (2015) \cite{yuanyin2015} formulated PSO using a stochastic approximation setup under much weaker assumptions. They proved that the PSO will converge to a point in the search space, along with the proof of the rate of convergence. Specifically, the convergence they refer to is ``swarm collapse'', where every particle attains the same position, also known as premature convergence. This meant that the PSO could result in a solution that is neither a local or global solution to the optimisation problem, and that we cannot ensure the quality of the solution obtained from the PSO algorithm. \newline
+
+\newpage
+
+\section{Related Swarm-based Algorithms}
+\label{section:related swarm algo}
+In this section, we introduce two variants of the original PSO algorithm, each inspired by different phenomenon, that attempts to address non-convergence problems discussed in Section \ref{subsection:pso non-convergence}. The results from numerical studies of these algorithms will be discussed in Section \ref{section:comparative studies}.
+
+\subsection{Competitive Swarm Optimiser}
+Competitive Swarm Optimiser (CSO) proposed by Cheng and Jin (2015) \cite{chengjin2015} is a variant of the original PSO algorithm that attempts to address the problem of the non-convergence of PSO in high dimensions, by introducing the idea of particles ``competing'' with each other. The particles are randomly paired up and compete by comparing their fitness values to determine a winner and loser among the two. The winners will continue competing and the losers will have the particle velocities and positions updated, by ``learning'' from the winner's position, and the average position of the swarm. Figure \ref{fig:cso} gives a general overview of how CSO works. The CSO algorithm is given in Algorithm \ref{alg:cso}. \newline
+
+\newpage
+
+\begin{figure}[H]
+    \centering
+    % \fbox{\input{images/cso_fig.tex}}
+    \fbox{\includegraphics[scale=0.3]{CSO_Diagram.png}}
+    \caption{Diagram adapted from Cheng and Jin (2015) that shows a general overview of the CSO. Particles are randomly grouped into pairs where they ``compete'' with each other. The winner is put into the new swarm, and the loser is updated before being placed into the new swarm.}
+    \label{fig:cso}
+\end{figure}
+
+\begin{figure}[H]
+    \renewcommand\figurename{Algorithm}
+    \begin{algorithm}[H]
+        \singlespacing
+        \caption{Competitive Swarm Optimiser}
+        \begin{algorithmic}[1]
+            \For{$i = 1$ to $p$}
+                \State{Initialise initial position, $\mb{x}_i$ and associated particle velocities $\mb{v}_i$}
+            \EndFor
+            \State{Initialise $t \leftarrow 0$}
+            \State{Initialise $\bar{\mb{x}} \leftarrow \frac{1}{p} \sum_{i=1}^p \mb{x}_i$}
+            \While{termination condition not reached}
+                \State{Initialise $U_t$ as the set of all particles at iteration $t$}
+                \State{Initialise $U_{t+1}$ as the set of all particles for the next iteration $t + 1$}
+                \While{$U_t \neq \emptyset$}
+                    \State{Randomly select $\mb{x}_i, \mb{x}_j \in U_t$}
+                    \State{Remove $\mb{x}_i, \mb{x}_j$ from $U_t$}
+                    \If{$f(\mb{x}_{i}) < f(\mb{x}_{j})$}
+                        \State{$\mb{x}_w \leftarrow \mb{x}_i$, $\mb{x}_l \leftarrow \mb{x}_j$}
+                    \Else
+                        \State{$\mb{x}_w \leftarrow \mb{x}_j$, $\mb{x}_l \leftarrow \mb{x}_i$}
+                    \EndIf
+                    \State{Add $\mb{x}_w$ into $U_{t+1}$}
+                    \State{Update loser velocity, $\mb{v}_l$}
+                    \State{Update loser position, $\mb{x}_l \leftarrow \mb{x}_l + \mb{v}_l$}
+                    \State{Add $\mb{x}_l$ into $U_{t+1}$}
+                \EndWhile
+                \State{$t \leftarrow t + 1$}
+                \State{Update $\bar{\mb{x}} \leftarrow \frac{1}{p} \sum_{i=1}^p \mb{x}_i$ for $\mb{x}_i \in U_{t+1}$}.
+            \EndWhile
+        \end{algorithmic}
+    \end{algorithm}
+    \caption{The general procedure for the CSO algorithm based on  Cheng and Jin (2015).}
+    \label{alg:cso}
+\end{figure}
+
+The initial particle positions and velocities are generated in the same way as described for that of the original PSO algorithm in Section \ref{subsection:pso algorithm}. The updating of the particle velocity is as follows:
+$$\mb{v}_{l} \leftarrow \mb{R}_1 \circ \mb{v}_l + \mb{R}_2 \circ (\mb{x}_w - \mb{x}_l) + \phi \cdot \mb{R}_3 \circ (\bar{\mb{x}} - \mb{x}_l)$$
+where $\mb{R}_1, \mb{R}_2, \mb{R}_3 \in \mathbb{R}^d$ are random vectors of i.i.d. $U(0, 1)$ uniform components, and the social factor $\phi \geq 0$ is a parameter that controls the contribution of the mean particle position $\bar{\mb{x}}$. The symbol $\circ$ denotes the Hadamard product. In the CSO, instead of all the particles being updated, only the loser particles are updated. In particular, setting $\phi = 0$ means that we ignore the other particles in the velocity update of the losers, and setting $\phi > 0$ will mean that the velocity update of the loser considers both the winner particle of that pair, and contributions from all other particles. \newline
+
+Cheng and Jin provide a set of recommendations on how to select the number of particles $p$ and the social factor $\phi$ based on empirical results. For a function with dimension less than or equal to 500, we set $p = 100$ and $\phi = 0$, with values of $p$ and $\phi$ increasing as the dimension of the function increases. For the purposes of this thesis, all functions we consider will have dimension less than 500.
+
+\subsection{Quantum-behaved Particle Swarm Optimisation}
+Quantum-behaved Particle Swarm Optimisation (QPSO) proposed by Sun et. al (2004) \cite{sun2004} is another variant of the original PSO algorithm inspired by quantum mechanics. Each particle is treated as a spin-less particle moving in a $d$-dimensional quantum space characterised by a wave function $\psi$, where $d$ is the dimension of the function $f$ to be minimised, and are updated by assuming that the particles moves in the $d$-dimensional quantum space with a $\delta$ potential well.
+\newline
+
+On top of the notation used in Section \ref{subsection:pso algorithm}, we include some additional definitions: $\bar{\mb{x}}^b$ denotes the mean of all the personal best particle positions in the swarm, and $\bar{x}^b_j$ denotes the $j^\text{th}$ dimension of the mean of all personal best particle positions. The QPSO algorithm is given in Algorithm \ref{alg:qpso}.
+
+\begin{figure}[H]
+    \renewcommand\figurename{Algorithm}
+    \begin{algorithm}[H]
+        \singlespacing
+        \caption{Quantum-behaved Particle Swarm Optimisation}
+        \begin{algorithmic}[1]
+            \For{$i = 1$ to $p$}
+                \State{Initialise initial position, $\mb{x}_i$}
+                \State{Initialise particle velocity, $\mb{v}_i$}
+                \State{Set particle best position to initial position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                    \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                \EndIf
+            \EndFor
+            \State{Initialise $\bar{\mb{x}}^b \leftarrow \frac{1}{p} \sum_{i=1}^p \mb{x}^b_i$}
+            \While{termination condition not reached}
+                \For{$i = 1$ to $p$}
+                    \For{$j = 1$ to $d$}
+                        \State{Generate $u_{1,j}, u_{2,j}, u_{3,j} \overset{i.i.d.}{\sim} U(0, 1)$}
+                        \State{Let $y_j \leftarrow u_{1,j} \cdot x^b_{i,j} + (1 - u_{1,j}) \cdot \mb{x}^g_j$}
+                        \State{Update particle position $x_{i,j}$}  
+                    \EndFor
+                \EndFor
+                \If{$f(\mb{x}_i) < f(\mb{x}^b_i)$}
+                    \State{Update particle best position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                    \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                        \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                    \EndIf
+                \EndIf
+                \State{Update $\bar{\mb{x}}^b \leftarrow \frac{1}{p} \sum_{i=1}^p \mb{x}^b_i$}
+            \EndWhile
+        \end{algorithmic}
+    \end{algorithm}
+    \caption{The general procedure for the QPSO algorithm based on Sun et. al (2004).}
+    \label{alg:qpso}
+\end{figure}
+
+The initial particle positions and velocities are generated in the same way as described for that of PSO in Section \ref{subsection:pso algorithm}. There are two variants of the particle position update procedure for QPSO \cite{1460396, Sun2012ConvergenceAA}. The QPSO-Type 1 (QPSO-T1) has the following update procedure:
+$$x_{i,j} \leftarrow 
+\begin{cases}
+y_j + \alpha \cdot \lvert x_{i,j} - y_j \rvert \cdot \ln{(1 / u_{2,j})}, & \text{if} \ u_{3,j} < 0.5, \\
+y_j - \alpha \cdot \lvert x_{i,j} - y_j \rvert \cdot \ln{(1 / u_{2,j})}, & \text{otherwise} \ . \\
+\end{cases}$$
+Alternatively, the QPSO-Type 2 (QPSO-T2) has the following update procedure:
+$$x_{i,j} \leftarrow 
+\begin{cases}
+y_j + \alpha \cdot \lvert x_{i,j} - \bar{x}^b_j \rvert \cdot \ln{(1 / u_{2,j})}, & \text{if} \ u_{3,j} < 0.5, \\
+y_j - \alpha \cdot \lvert x_{i,j} - \bar{x}^b_j \rvert \cdot \ln{(1 / u_{2,j})}, & \text{otherwise} \ . \\
+\end{cases}$$
+The two different update procedures differ in the additional contribution from the mean best particle positions in the swarm for QPSO-T1 instead of just the value $y_j$. The value $y_j$ is a randomly weighted average of the particle's best position and the global best position for dimension $j$. Thus, the update of the particle position takes in the contribution from the particle's best position and the global best position for both the QPSO-T1 and QPSO-T2. The contraction-expansion coefficient $\alpha > 0$ is a parameter that controls the balance between the global search and local search of the algorithm.
+
+\subsection{Comparison of Update Procedures}
+We can compare the difference in the velocity update in CSO to that of the original PSO algorithm. The first term that controls the effect from the previous velocity still remains, but it is now scaled randomly instead of by a constant $w$. The second term that was the cognitive component in the PSO is now replaced by the learning component in the CSO, where the particle is updated with contribution from the particle that won against it. The third term that was the social component also remains, but now instead of the contribution from the global best, it is now the contribution from the mean position of all the particles in the swarm. \newline
+
+Unlike both the PSO and CSO, QPSO is not dependent on the update of a velocity term to update the particle position. It is instead updated directly by the particle positions of itself, its previous best, the global best, and other particle positions. In the QPSO, the update is also dependent on a uniform random variable, which is emulating the flipping of a unbiased coin, to determine whether the update should be the addition or subtraction of the second term to $y_j$.
+
+\newpage
+
+\section{Enhancements of Particle Swarm Optimisation}
+\label{section:enhancements}
+This section will discuss two new enhancements to the original PSO algorithm, the Smoothed Particle Swarm Optimisation and the Adaptive Smoothed Particle Swarm Optimisation \cite{choi2020}, that aims to address the problem of non-convergence of the original PSO algorithm discussed in Section \ref{subsection:pso non-convergence}.
+
+\subsection{Smoothed Particle Swarm Optimisation}
+\label{subsection:spso algorithm}
+The original PSO algorithm faces the problem of ``swarm collapse'' where all the particles may converge to a single point, which may not be the global minimum. At this point, any attempts to update the particle positions will not result in any significant changes to the particle positions. Smoothed Particle Swarm Optimisation (sPSO) tries to address this problem by introducing two new parameters $\eta$ and $\sigma$ with a modification of the update procedure in the original PSO algorithm. The sPSO algorithm has ensured convergence to the global minimum, and the results of the proof are discussed in Section \ref{subsection:convergence results}. \newline
+
+The sPSO algorithm follows exactly the same general procedure as that of PSO as outlined in Section \ref{subsection:pso algorithm}, with the only difference being the update procedure of the particle velocity $v_{i, j}$ for the $i^\text{th}$ particle at the $j^\text{th}$ dimension. The sPSO update procedure is as follows:
+$$v_{i,j} \leftarrow (1 - \eta w) \cdot v_{i,j} + \eta \cdot c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) + \eta \cdot c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j}) + \eta \cdot \sigma \cdot Z$$
+where $Z \overset{i.i.d.}{\sim} N(0, 1)$ is a standard normal random variable, and $0 < \eta \leq 1$ and $\sigma \geq 0$ are new parameters introduced by sPSO. Here, the values of $c_1, c_2 > 0$ refer to the same cognitive and social coefficients in PSO respectively. However, the value of $w$ for sPSO does not refer to the same inertia weight value $w$ in PSO. If we were to denote the intertia weight in PSO as $w^*$, then the analogous equivalent of intertia weight would be $w = 1 - w^*$ in sPSO. In this way, we can view PSO as a special case of sPSO with $\eta = 1$ and $\sigma = 0$. \newline
+
+An additional standard normal random variable $Z$ is included in the update step for sPSO, which corresponds to adding noise to the velocity update. Specifically, we consider $\sigma \cdot Z$, which corresponds to a normal random variable with mean $0$ and variance $\sigma^2$. The addition of the normally distributed noise is to help prevent the particles from premature convergence, by ensuring that there will still be changes to the velocity and thus the particle positions even for particles which are at their personal or global best positions. \newline
+
+The parameter $\eta$ acts as a step size. It reduces the contribution to the velocity from the social and cognitive terms in the velocity update, while increasing the contribution from the previous particle velocity. In particular, we can rewrite the velocity update step as
+$$v_{i,j} \leftarrow  (1 - \eta w) \cdot v_{i,j} +  \eta \left( c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) + c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j}) + \sigma \cdot Z \right)$$
+which shows more clearly the effect of $\eta$ on the entire velocity update. Decreasing the value of $\eta$ would increase the value of $1 - \eta w$, increasing the contribution from the previous velocity $v_{i,j}$, while decreasing the contribution from all the other terms. The reduction in velocity for the social and cognitive factors here is similar to the concept of constriction factors, with the difference that the multiplicative factor is not dependent on $c_1$ and $c_2$. We can see $\eta$ as a parameter that helps to balance the \textit{Exploration-Exploitation Tradeoff}. A smaller value of $\eta$ is analogous to focusing on exploration, since we are trying to penalise exploitation by reducing the contribution from the personal and global bests. A larger value of $\eta$ would mean that we are focusing on exploitation by making greater use of the knowledge from the personal and global best positions.
+
+% smaller change in particle velocity at each iteration, which can be seen as the particles ``moving more slowly''. The slower movement can help prevent particles from moving too far from its previous position, which may cause it to miss parts of the search space that could have given better candidate solutions. Thus, the inclusion of $\eta$ leads to a ``smoothing'' effect on the particle movement by reducing the overall velocity and thus making the movement of each particle smaller.
+
+\subsection{Adaptive Smoothed Particle Swarm Optimisation}
+\label{subsection:apso algorithm}
+Although sPSO has guaranteed convergence to the global minimum compared to PSO, the smaller particle velocities and thus smaller movements may result in sPSO taking many more iterations to converge than PSO does. The inclusion of $\sigma$ may also result in the algorithm moving away from a good candidate solution. Adaptive Smoothed Particle Swarm Optimisation (aPSO) addresses this by introducing a data-driven framework for the parameters $\eta$ and $\sigma$ instead of keeping them at a fixed constant in sPSO. Like sPSO, aPSO has guaranteed convergence to the global minimum, and the results of the proof are discussed in Section \ref{subsection:convergence results}. \newline
+
+We introduce $C_t$, a measure of the algorithm stagnation. Let $t$ denote the current iteration number, and $\mb{x}^g(k)$ denote the global best particle position at iteration $k$. We define $C_t = \min \left\{1, \max \left\{\frac{t - \psi_t}{T_s} - 1, 0 \right\}\right\}$, where $\psi_t = \max \left\{s \leq t: \mb{x}^g(s) \neq \mb{x}^g(s-1) \right\}$ is the last iteration number that $\mb{x}^g$ has been updated, and $T_s$ is an iteration threshold. Thus $t - \psi_t$ is the number of iterations that $\mb{x}^g$ has remained unchanged, and the value of $C_t$ becomes greater than $0$ only after $t - \psi_t > T_s$. Thus, the algorithm is treated as stagnated only after $C_t$ becomes positive. \newline
+
+On top of $C_t$, since $\eta$ and $\sigma$ are no longer constant values, we define a range of values that the parameters can take. For any iteration $t$, the values $\eta_t$ and $\sigma_t$ can also vary for each iteration, such that $\eta_t \in \left[\eta_\text{min}, \eta_\text{max}\right]$ and $\sigma_t \in \left[\sigma_\text{min}, \sigma_\text{max}\right]$, denoting the upper and lower bounds for both parameters that are to be defined, such that $0 \leq \eta_\text{min} \leq \eta_t \leq \eta_\text{max}$ and $0 \leq \sigma_\text{min} \leq \sigma_t \leq \sigma_\text{max}$. The aPSO algorithm is given in Algorithm \ref{alg:apso}.
+
+\begin{figure}[H]
+    \renewcommand\figurename{Algorithm}
+    \begin{algorithm}[H]
+        \singlespacing
+        \caption{Adaptive Smoothed Particle Swarm Optimisation}
+        \begin{algorithmic}[1]
+            \For{$i = 1$ to $p$}
+                \State{Initialise initial position, $\mb{x}_i$}
+                \State{Initialise particle velocity, $\mb{v}_i$}
+                \State{Set particle best position to initial position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                    \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                \EndIf
+            \EndFor
+            \State{Initialise $t = 0$}
+            \State{Initialise $\tau = 0$}
+            \While{termination condition not reached}
+                \State{Update $t \leftarrow t + 1$}
+                \State{Update $C_t \leftarrow \min \left\{1, \max \left\{\frac{\tau}{T_s} - 1, 0 \right\}\right\}$}
+                \State{Calculate $\sigma_t, \eta_t$}
+                \State{Initialise \textit{updated} $\leftarrow$ \textbf{False}}
+                \For{$i = 1$ to $p$}
+                    \For{$j = 1$ to $d$}
+                        \State{Generate $u_{b,j}, u_{g,j} \overset{i.i.d.}{\sim} U(0, 1)$}
+                        \State{Update particle velocity $v_{i,j}$}
+                    \EndFor
+                    \State{Update particle position $\mb{x}_i \leftarrow \mb{x}_i + \mb{v}_i$}
+                    \If{$f(\mb{x}_i) < f(\mb{x}^b_i)$}
+                        \State{Update particle best position, $\mb{x}^b_i \leftarrow \mb{x}_i$}
+                        \If{$f(\mb{x}^b_i) < f(\mb{x}^g)$}
+                            \State{Update global best position, $\mb{x}^g \leftarrow \mb{x}^b_i$}
+                            \State{\textit{updated} $\leftarrow$ \textbf{True}}
+                        \EndIf
+                    \EndIf
+                \EndFor
+            \If{\textit{updated} is \textbf{True}}
+                \State{Set $\tau \leftarrow 0$}
+            \Else
+                \State{Update $\tau \leftarrow \tau + 1$}
+            \EndIf
+            \EndWhile
+        \end{algorithmic}
+    \end{algorithm}
+    \caption{The general procedure for the aPSO algorithm.}
+    \label{alg:apso}
+\end{figure}
+
+Like the other algorithms, the initial particle positions and velocities are generated as per PSO in Section \ref{subsection:pso algorithm} and $\tau = t - \psi_t$ represents the number of iterations of stagnation, and is used here to simplify the algorithm. The parameters $\sigma_t$ and $\eta_t$ are calculated as follows:
+$$\begin{aligned}
+\sigma_t &\rightarrow \sigma_\text{max} C_t + \sigma_\text{min} (1 - C_t) \\
+\eta_t &\rightarrow \eta_\text{min} C_t + \eta_\text{max} (1 - C_t) \\
+\end{aligned}$$
+Since $C_t \in [0, 1]$, $\sigma_t$ and $\eta_t$ can be viewed as either a linear combination or a weighted average of their corresponding upper and lower bounds. Thus, $\sigma_t$ increases and $\eta_t$ decreases whenever the value of $C_t$, or stagnation, increases. \newline
+
+The update procedure for aPSO is of the same form as that of sPSO. The update procedure is as follows:
+$$\begin{aligned}
+v_{i,j} &\leftarrow (1 - \eta_t w) \cdot v_{i,j} + \eta_t \cdot c_1 \cdot u_{b,j} \cdot  (x^b_{i,j} - x_{i,j}) + \eta_t \cdot c_2 \cdot u_{g,j} \cdot (x^g_j - x_{i,j}) + \eta_t \cdot \sigma_t \cdot Z
+\end{aligned}$$
+Thus, the only difference in the update procedure is replacing the constants $\sigma$ and $\eta$ parameters with the adaptive parameters $\sigma_t$ and $\eta_t$. \newline
+
+Consider the particular case where $\eta_\text{min} = 0$, $\eta_\text{max} = 1$, $\sigma_\text{min} = 0$ and $\sigma_\text{max} = 1$. When there is no stagnation, i.e. $C_t = 0$, we have $\sigma_t = 0$ and $\eta_t = 1$ exactly, corresponding to the PSO. When $C_t = \epsilon$, where $0 < \epsilon < 1$, we have $\sigma_t = \epsilon$ and $\eta_t = 1 - \epsilon$, corresponding to the sPSO. Thus, we can view the aPSO as a combination of both the original PSO and sPSO, or the algorithm ``switching'' between the two algorithms. In the initial stages of the algorithm where there is no stagnation, $C_t = 0$ and the algorithm simplifies to PSO. When $C_t > 0$ and stagnation occurs, the algorithm does a ``switch'' to sPSO by reducing $\eta_t$ and increasing $\sigma_t$. Again, we can view this as balancing the \textit{Exploration-Exploitation Tradeoff} as discussed for sPSO in Section \ref{subsection:spso algorithm}. When there is no stagnation, the algorithm focuses on exploiting the information available to improve the solution. When stagnation occurs, the algorithm will start to explore other parts of the search space to find other possibly better solutions.
+
+\subsection{Convergence Results}
+\label{subsection:convergence results}
+Compared to PSO which may not converge to the global minimum due to ``swarm collapse', sPSO and aPSO has guaranteed convergence to the global minimum. The proof of convergence of can be found in Choi et. al \cite{choi2020}. The full proof will not be discussed here as it is beyond the scope of this project. We will discuss some of the assumptions and results of the proof in this section.
+
+\begin{definition}
+For a function $f:\mathbb{R}^n \rightarrow \mathbb{R}$, $f$ is coercive if $\underset{\lVert \mb{x} \rVert \rightarrow \infty}\lim f(\mb{x}) = \infty$.
+\end{definition}
+
+It is important that we assume that our objective function is coercive, so that the global minimum exists. For example, consider the function  $f(x) = -x$, which is not coercive. As $x \rightarrow \infty$, $f(x) \rightarrow -\infty$ and $f$ has no global minimum.
+
+\begin{theorem}
+\label{theorem:spso convergence}
+Suppose $f$ is a continuous function that is coercive. There exists $\eta_0$ such that for all $\eta$, where $0 < \eta \leq \eta_0$, such that the following statements are true.
+\begin{enumerate}[(i)]
+    \item The sPSO algorithm is stochastically bounded:
+    $$\underset{t \rightarrow \infty}{\lim \sup} \ \mathbb{E} \lVert \mb{x}_i(t) \rVert^2 < \infty, \
+    \underset{t \rightarrow \infty}{\lim \sup} \ \mathbb{E} \lVert \mb{v}_i(t) \rVert^2 < \infty.$$
+    \item The sPSO algorithm will eventually find the global optimum:
+    $$\underset{t \rightarrow \infty}{\lim} f(\mb{x}^g(t)) = \underset{\mb{x}}{\min} f(\mb{x}).$$
+\end{enumerate}
+\end{theorem}
+
+Here, $\mb{x}_i(t)$ and $\mb{v}_i(t)$ denote the particle position and velocity of the $i^\text{th}$ particle at iteration $t$, and $\mb{x}^g(t)$ denotes the global best particle position at iteration $t$. Theorem \ref{theorem:spso convergence} provides a convergence result for the sPSO in the limit. However, it is important to note that the number of iterations required for convergence may be extremely large.
+
+\begin{theorem}
+\label{theorem:apso convergence}
+Suppose $f$ is a continuous function that is coercive, and there are constants $0 < \eta_- < \eta_+ \leq 1$ and $0 < \sigma_- < \sigma_+$ such that the parameter choices satisfy
+$$\eta_- \leq \eta_t \leq \eta_+, \ \sigma_- \leq \sigma_t \leq \sigma_+.$$
+Also assume that there exists an interior point $\mb{x}^* \in \mathcal{D}$, where $\mathcal{D}$ is the search space of the algorithm which is a closed and bounded set, such that $f(\mb{x}^*) = \underset{\mb{x}}{\min} f(\mb{x})$. There exists $M$ such that for all $\mb{x} \in D, \ \lVert \mb{x} \rVert \leq M$, such that the following statements are true.
+\begin{enumerate}[(i)]
+    \item The aPSO algorithm is stochastically bounded:
+    $$\lVert \mb{x}_i(t) \rVert^2 < M^2, \
+    \underset{t \rightarrow \infty}{\lim \sup} \ \mathbb{E} \lVert \mb{v}_i(t) \rVert^2 < \infty.$$
+    \item The aPSO algorithm will eventually find the global optimum:
+    $$\underset{t \rightarrow \infty}{\lim} f(\mb{x}^g(t)) = \underset{\mb{x}}{\min} f(\mb{x}).$$
+\end{enumerate}
+\end{theorem}
+
+Theorem \ref{theorem:apso convergence} provides a convergence result for aPSO that is stronger than that of sPSO. In particular, by considering $\eta_t = \eta$ and $\sigma_t = \sigma$ in our assumptions for Theorem \ref{theorem:apso convergence}, we can view sPSO as a special case of aPSO.
+
+\subsection{Effect of Parameter Choices on sPSO and aPSO}
+\label{subsection:parameter choices}
+To investigate the effect of the two new parameters in sPSO $\eta$ and $\sigma$, sPSO was run on 30 test functions for 100 repetitions, each for 10,000 iterations, to obtain the estimate of the global minimum for varying levels of $\eta$ and $\sigma$, and the mean of the 100 estimates were calculated. The 30 test functions are discussed further in Section \ref{subsection:test functions} and are also found in Appendix \ref{subsection:function info}. The algorithm is initialised with 32 particles. For the parameter values, we considered $\eta \in \left\{ 0.025, 0.05, 0.1, 0.2, 0.4, 0.8 \right\}$ and $\sigma \in \left\{ 0.5, 1, 2, 4, 8 \right\}$. The results are shown in Appendix \ref{subsection:parameter spso}. Table \ref{tab:spso winners table} shows the number of times a particular $\eta$ and $\sigma$ pair obtains the smallest mean for a particular function and dimension. \newline
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{0.7}
+    \input{tables/spso_winners.tex}
+    \renewcommand{\arraystretch}{1}
+    \caption{Table of results showing number of times each $\eta$ and $\sigma$ pair obtain the smallest mean estimate of the global minimum for the 30 test functions across varying dimensions. Of the 75 function-dimension pairs, 4 are not included due to ties.}
+    \label{tab:spso winners table}
+\end{table}
+
+The results show a general trend of sPSO performing better with smaller values of $\eta$ and smaller values of $\sigma$. Specifically, the $(\eta, \sigma)$ pairs of $(0.025, 0.5)$ and $(0.05, 0.5)$ perform the best across the 30 test functions with varying dimension. \newline
+
+Similarly, we also investigate the effect of the parameters in aPSO in a similar setup to that done for sPSO. Here we fix $\eta_\text{max} = 1$ and $\sigma_\text{min} = 0.01$, and vary $\eta_\text{min}$ and $\sigma_\text{max}$, where $\eta_\text{min} \in \left\{ 0.025, 0.05, 0.1, 0.2, 0.4, 0.8 \right\}$ and $\sigma_\text{max} \in \left\{ 0.5, 1, 2, 4, 8 \right\}$. Here, fixing $\eta_\text{max} = 1$ is a logical choice as it is the maximum upper bound possible for any value of $\eta$, while fixing $\sigma_\text{min} = 0.01$ is a small enough value that such that any contribution from the normal term in the velocity update step will be extremely small. The results are shown in Appendix \ref{subsection:parameter apso}. \newline
+
+The results show that there is very little effect on the performance of aPSO when varying $\eta_\text{min}$ and $\sigma_\text{max}$. For varying dimensions of the test functions, there are mostly no differences in the mean of the estimates obtained at different values of $\eta$ and $\sigma$, with any differences being of a very small magnitude, such as the results for F1, F2, F3 and F4. Note that only the results for F1 to F10 are shown in Appendix \ref{subsection:parameter apso}, but the general trend persists for F11 to F30.
+
+\subsection{Comparing Empirical Convergence of PSO, sPSO, aPSO}
+\label{subsection:empirical convergence}
+We investigated the performance of PSO and the two PSO enhancements, sPSO and aPSO. The three algorithms were run for 100 repetitions, each of 500,000 iterations, on 8 test functions to obtain the estimates of the global minimum, and the mean and standard deviation of the 100 estimates were calculated. All three algorithms were initialised with 32 particles. For sPSO, the parameter values were chosen to be $\eta = 0.025$ and $\sigma = 0.5$. For aPSO, the parameter values were chosen to be $\eta_\text{min} = 0.025$, $\eta_\text{max} = 1$, $\sigma_\text{min} = 0.01$ and $\sigma_\text{max} = 0.5$. The results are shown in Table \ref{tab:500k table}.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{0.7}
+    \input{tables/500k.tex}
+    \renewcommand{\arraystretch}{1}
+    \caption{Table of 8 test functions and their corresponding dimension, with the averaged results for 100 repetitions of 500,000 iterations for the three algorithms: PSO, sPSO and aPSO. The first value in each cell is the mean, followed by the standard deviation given in brackets.}
+    \label{tab:500k table}
+\end{table}
+
+From the results, aPSO obtains a mean that is the closest to the global minimum for the 8 test functions, except for Eggholder and Griewank, where the mean for sPSO is the closest to the global minimum. The improvement in performance from PSO to sPSO and PSO to aPSO is especially substantial for some functions such as Bohachevsky1, Bohachevsky2, Griewank, Rosenbrock and Sumsquare, where the mean is several orders of magnitude smaller. The improvement in performance from sPSO to aPSO is still significant although smaller than that from PSO to sPSO. For example, the mean for Bohachevsky1 reduced by close to 1500 times and 30 times respectively from PSO to sPSO and sPSO to aPSO. \newline
+
+In addition to the final estimates of the results, we also consider the estimates obtained during the algorithm. For each of the algorithms, the global best estimates were taken at the following iteration numbers: 10, 50, 100, 200, 400, 1000, 3000, 10000, 100000 and 5000000, which is the last iteration. The respective average of the global best values are plotted against a log-scale of the iteration numbers for clarity and are shown in Figure \ref{fig:500k graphs}. \newline
+
+The graphs provide a clearer picture of the similarities and differences in the behavior of the three algorithms. The average global best values for sPSO are always decreasing at a slower rate than that of PSO. However, the average global best value of PSO tends to become completely stagnant earlier, while the for sPSO the values usually continue decreasing and become stagnant at a value lower than that of PSO. This illustrates the fact that the sPSO takes a longer time to converge due to the smaller velocities compared to PSO. \newline
+
+For aPSO, the average global best values obtained follow a trajectory that is very similar to that of PSO. However, in most cases where the values for PSO becomes stagnant, the values for aPSO continue to decrease, in a trajectory that is similar to that of sPSO. This illustrates the ``switch'' from PSO to sPSO mentioned in Section \ref{subsection:apso algorithm}, as the values start to become stagnant.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Ackley_500k.eps} \quad
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Bohachevsky1_500k.eps}
+    \medskip
+    
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Bohachevsky2_500k.eps} \quad
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Eggholder_500k.eps}
+    \medskip
+    
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Griewank_500k.eps} \quad
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Rastrigin_500k.eps}
+    \medskip
+    
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Rosenbrock_500k.eps} \quad
+    \includegraphics[height=0.35\textwidth,width=.45\textwidth]{gbests/Sumsquare_500k.eps}
+    
+    \caption{Graphs of performance of PSO, sPSO and aPSO for the 8 test functions. The $x$-axis is the number of iterations in $\log$ scale, and the $y$-axis is the average global best value.}
+    \label{fig:500k graphs}
+\end{figure}
+
+Another method to compare the three algorithms would be to consider first-order stochastic dominance \cite{hadar1969rules}. For two probability distributions $f$ and $g$ with the same support $X$, and respective Cumulative Distribution Function (CDF) $F(x)$ and $G(x)$, $f$ first-order stochastically dominates $g$ if and only if $F(x) \leq G(x)$ for all $x \in X$. This can be verified graphically by plotting $F(x)$ and $G(x)$ to check if the two curves intersect. \newline
+
+We can treat each result from 100 repetitions of an algorithm on a test function as i.i.d. random variables from the same distribution and compute the empirical CDF for the algorithm, and compare the empirical CDF from different algorithms. We consider two algorithms A and B with empirical CDF $F_A$ and $F_B$ respectively. If $F_A(x) \leq F_B(x)$ for all $x$, A first-order stochastically dominates B. Thus, $B$ would be the better algorithm, since the empirical probability that we will obtain a lower value that is closer to the global minimum is always greater. In particular, a good algorithm would have a empirical CDF that is close to a vertical line, meaning that the probability of obtaining a solution close to the global minimum would be close to 1. The empirical CDFs for the 8 test functions at three iteration numbers, 1000, 10000 and 500000, are shown in Figure \ref{fig:ecdf graphs}. \newline
+
+Looking at the rightmost graph of each row in Figure \ref{fig:ecdf graphs}, we can see that for most of the functions, both sPSO and aPSO obtain a empirical CDF that is close to vertical. In these cases, we can see that PSO first-order stochastically dominates the other two algorithms. For Rastrigin, despite none of the empirical CDFs being vertical, the CDFs do not intersect, and PSO stochastically dominates sPSO and aPSO, while sPSO stochastically dominates aPSO. For Ackley and Eggholder, since the CDFs intersect, we cannot conclude that one algorithm stochastically dominates any other algorithm. \newline
+
+As the number of iterations increase from 1000 to 10000 and to 500000, we can see a general trend that the empirical CDF for sPSO is moving towards the left and becoming closer to the empirical CDF of sPSO, and can be seen in the graphs for Bohachevsky1, Bohachevsky2, Griewank, Rastrigin, Rosenbrock and Sumsquare. As the number of iterations increase, sPSO is still able to improve on the estimate of the global minimum, while the PSO becomes stagnant. The empirical CDF of aPSO starts out having a higher degree of overlap with the empirical CDF of PSO. As the number of iterations increases, the degree of overlap becomes smaller, and the empirical CDF of aPSO overlaps more with the empirical CDF of sPSO. Once again, this illustrates the ``switch'' from PSO to sPSO mentioned in Section \ref{subsection:apso algorithm}. \newline
+
+Overall, the results from Figure \ref{fig:ecdf graphs} agree with the results from Figure \ref{fig:500k graphs} that the aPSO and sPSO have better performance than that of PSO.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Ackley_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Bohachevsky1_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Bohachevsky2_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Eggholder_500k.eps}
+    \caption{Graphs of Empirical CDF of PSO, sPSO and aPSO for the 8 test functions. The $x$-axis is the global best value of the results, and the $y$-axis is the cumulative probability. Each row contains the plots for the 500, 10000 and 500000 iterations respectively for each function.}
+    \label{fig:ecdf graphs}
+\end{figure}
+    
+\begin{figure}[H]
+    \ContinuedFloat
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Griewank_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Rastrigin_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Rosenbrock_500k.eps} \\ \bigskip
+    \includegraphics[height=0.33\textwidth,width=\textwidth]{ecdfs/Sumsquare_500k.eps}
+    \caption{Graphs of Empirical CDF of PSO, sPSO and aPSO for the 8 test functions. The $x$-axis is the global best value of the results, and the $y$-axis is the cumulative probability. Each row contains the plots for the 500, 10000 and 500000 iterations respectively for each function.}
+    % \caption{Graphs of performance of PSO, sPSO and aPSO for the 8 test functions. The $x$-axis is the number of iterations in $\log$ scale, and the $y$-axis is the average function value of the global best positions. Each row contains the plots for the 500, 10000 and 500000 iterations respectively for each function.}
+\end{figure}
+
+\newpage
+
+\section{Comparative Studies of Swarm Algorithms}
+\label{section:comparative studies}
+In this section, we compare the performance of PSO with its enhancements and variants on a suite of test functions. Specifically, we compare the performance of the original PSO, sPSO and aPSO introduced in Section \ref{section:enhancements}, and CSO and QPSO (both QPSO-T1 and QPSO-T2) introduced in Section \ref{section:related swarm algo}. All experiments are run on MATLAB version R2019a on a HP Xeon two socket Quad-Core 64-bit Linux cluster running CentOS 6. MATLAB code for the CSO algorithm is adpated from code written by the original author \footnote{CSO code adapted from \url{https://github.com/ranchengcn/CSO_Matlab}}. The code for the PSO, sPSO, aPSO and QPSO algorithms are built on from the work of Tong from Choi et. al \cite{choi2020}.
+
+\subsection{Test Functions}
+\label{subsection:test functions}
+For the numerical experiments in Section \ref{section:comparative studies}, a total of 30 test functions are considered. The 30 test functions are chosen based on Ab Wahab et. al \cite{plosreview2015}, along with reference from Surjanovic and Bingham \cite{simulationlib}. Each of the 30 test functions are listed in the Appendix with a label, such as F1 for Ackley, the function name, the known global minimum value, an indication of whether it is unimodal and separable, and the mathematical expression of the function. The list of functions can be found in Appendix \ref{subsection:function info}. Each function is classified in two ways: unimodal or multimodal, and separable or non-separable. Specifically, we classify a function as unimodal if there is a single global minimum point with no local minima, and multimodal otherwise. Separability here refers to additively separable functions, i.e. a function is classified as separable if it can be written as a sum of functions in each one of its dimensions. Experiments are run on the test functions with different dimensions, specifically dimensions 5, 10, 20 and 40, for functions that are defined for general dimension $d$. Otherwise, we use only the fixed dimension. There are altogether 75 function-dimension pairs.
+
+\subsection{Comparing PSO, sPSO, aPSO, CSO and qPSO}
+\subsubsection{Comparison by Global Best Values}
+\label{subsubsection:compareall min}
+To compare the performance of the different algorithms, we run the algorithms to obtain the mean of the global best value of each of the test functions for 100 repetitions, each of 10,000 iterations, and the mean and standard deviation of the results from the 100 repetitions were calculated. All the algorithms were initialised with 32 particles, except for CSO. The inertia weight and acceleration coefficients are set to $w = 0.271$, $c_1 = 1.5$ and $c_2 = 1.5$ for PSO, sPSO and aPSO. For sPSO, we set $\eta = 0.1$ and $\sigma = 0.5$, and for aPSO we set $\eta_\text{min} = 0$, $\eta_\text{max} = 1$, $\sigma_\text{min} = 0$ and $\sigma_\text{max} = 1$. The choice of parameters are motivated by numerical results that were discussed in Section \ref{subsection:parameter choices}. For QPSO-T1 and QPSO-T2, we set $\alpha = 0.75$ following the work done from Sun et. al \cite{Sun2012ConvergenceAA}. \newline
+
+For CSO, we follow the recommendations by Cheng and Jin \cite{chengjin2015}, where the setup of the algorithm and the parameters to choose are dependent on the dimension of the objective function. In our case, all the dimensions of our test functions in Appendix \ref{subsection:test functions} fall within the same class of functions where the dimension is less than 500, thus we initialise CSO with 100 particles and set $\phi = 0$. For CSO, the termination criteria is $5000 \cdot d$ functional evaluations, where $d$ is the dimension of the objective function, instead of the number of iterations. \newline
+
+The results are shown in Table \ref{tab:compareall table}. For each function-dimension pair, the results for each algorithm are ranked by comparing first by the mean, followed by the standard deviation. A result with lower mean will be given a lower numbered rank. If the means are the same, the result with the lower standard deviation will be given the lower numbered rank. In the event of any ties by both mean and standard deviation, the average of the ranks that were supposed to be assigned are given. The table of ranks is shown in Appendix \ref{subsection:compareall ranks table}. The average rank for each algorithm over the 75 function-dimension pairs is computed and given in Table \ref{tab:rank summary}. \newline
+
+\begin{landscape}
+\begin{scriptsize}
+\input{tables/compareall.tex}
+\end{scriptsize}
+\end{landscape}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|}
+    \toprule
+    Algorithm & PSO & sPSO & aPSO & CSO & QPSO-T1 & QPSO-T2 \\ \midrule
+    Average Rank & 4.5 & 4.5 & 3.3 & 2.2 & 3.2 & 3.2 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Table of average ranks across 75 function-dimension pairs for 30 test functions for all algorithms.}
+    \label{tab:rank summary}
+\end{table}
+
+From the results, we can see that the performance of aPSO is much better than that of sPSO and PSO across the 30 test functions in general. Some examples include F2 across all 4 dimensions, F13 across all 4 dimensions, and F16 with dimension 5. There are some cases where PSO or sPSO does better then aPSO. For PSO, this includes F1 at dimension 5, F3 at dimension 5, F4 with dimension 2, and F10 at dimension 40. For sPSO, this includes F1 at dimension 40, F6 with dimension 2, and F10 at dimension 10 and 20. From the table of ranks and average ranks, aPSO has a lower average rank compared to PSO and sPSO, again indicating that aPSO has a better performance across the 30 test functions than the other two algorithms. \newline
+
+Comparing the PSO variants and aPSO based on the results, we see that of these 4 algorithms, CSO has the best performance. CSO consistently achieves the lowest average minimum value across all the algorithms, resulting in the lowest average rank, and also often achieving the actual global minimum in many cases. Examples of this include F1, F2, F29 and F30 for all dimensions. The other three algorithms aPSO, QPSO-T1 and QPSO-T2 have varying performances across different functions, where they beat all other algorithms in some, but do not perform as well in others. For aPSO, examples of this include F8 at dimension 5, F10 at dimension 5 and F27 at dimension 5, 10 and 20. For QPSO-T1, examples include F6 with dimension 2, F17 at dimension 5 and 40, and F25 at dimension 10 and 40. For QPSO-T2, examples include F17 at all dimensions, F21 at dimension 10, and F28 at dimension 40. The three algorithms have resulting average ranks that are very close, with both QPSO types at 3.2, and aPSO at 3.3. Also, in several cases where aPSO does not perform as well as the other algorithms, the results are often very close, such as for F2, F16, F28 and F29. \newline
+
+Additionally, if we only compare QPSO-T1 and QPSO-T2, we see that for most function-dimension pairs, the performance of both the algorithms are very similar across the test functions. In many cases, their results are the same or extremely close, such as in F1 to F4 and F27 to F30, contributing to why they have the same average rank across the test functions. \newline
+
+It is also interesting to note that for some functions, the performance for different algorithms are almost similar. These include F5, F7, F9, F11, F12, F15, F22, and F23, which were all functions with fixed low dimensions. If we look at functions with varying dimension, a similar trend also appears for some functions at the lower dimensions, such as F28, F29 and F30. However, this trend does not persist as the dimension increases. \newline
+
+Overall, based on the comparison of the mean and standard deviation, the algorithm with the best performance is CSO. aPSO and both types of QPSO do fairly well, while sPSO and PSO perform poorly compared to the other algorithms. Despite aPSO not performing as well as CSO, there is a large improvement in performance compared to both PSO and sPSO, agreeing with the results in Section \ref{subsection:empirical convergence}.
+
+\subsubsection{Comparison by Time and Number of Functional Evaluations}
+To have an estimate of the cost of the different algorithms, we compare the amount of time taken and the number of functional evaluations taken for each algorithm, across all function-dimension pairs of test functions. Table \ref{tab:maxfe table} shows the number of functional evaluations used for each algorithm for the different dimensions. Appendix \ref{subsection:time table} shows the table of average CPU time in minutes to complete one instance of the algorithm over 100 repetitions. The average time taken for each algorithm over the 75 function-dimension pairs is computed and given in Table \ref{tab:time summary}. \newline
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{0.7}
+    \input{tables/maxfe.tex}
+    \renewcommand{\arraystretch}{1}
+    \caption{Table of number of evaluations for each algorithm for differing dimensions. Here, the values in the table represent the number of thousands of functional evaluations used in the algorithm.}
+    \label{tab:maxfe table}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|}
+    \toprule
+    Algorithm & PSO & sPSO & aPSO & CSO & QPSO-T1 & QPSO-T2 \\ \midrule
+    Average Time & 11.1 & 11.5 & 11.2 & 2.3 & 26.5 & 29.1 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Table of average time taken across 75 function-dimension pairs for 30 test functions for all six algorithms.}
+    \label{tab:time summary}
+\end{table}
+
+Comparing by functional evaluations, PSO, sPSO, aPSO and QPSO have the same number of functional evaluations across all dimensions, due to the fact that they are initialised with the same number of 32 particles and 10,000 iterations, which is independent of the dimension of the function. On the other hand, CSO which has 100 particles, has a fixed number of functional evaluations $5000 \cdot d$ where $d$ is the dimension of the function. This results in CSO having a lesser number of functional evaluations for all the dimensions compared to the other algorithms. \newline
+
+Comparing by time, the time taken for PSO, sPSO and aPSO are mostly similar, especially since the structure of the particle and velocity updates are similar. The same pattern is seen in QPSO-T1 and QPSO-T2 which have only very slightly different update procedures. The time taken for QPSO-T1 and QPSO-T2 is the highest across all the functions, followed by PSO, sPSO and aPSO. CSO takes the least time out of all the algorithms, likely attributed to the fact that it has a lower number of functional evaluations.
+
+\subsection{Comparing PSO, sPSO and aPSO}
+To consider the differences in performance between PSO, sPSO and aPSO, we use the results for the three algorithms from Table \ref{tab:compareall table} and rank them according to their performances for each function-dimension pair. The table of ranks for just these three algorithms is shown in Table \ref{subsection:comparesmall ranks table}. The average rank for each of the three algorithms over the 75 function-dimension pairs is computed and given in Table \ref{tab:rank small summary}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|}
+    \toprule
+    Algorithm & PSO & sPSO & aPSO \\ \midrule
+    Average Rank & 2.4 & 2.2 & 1.4 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Table of average rank taken across 75 function-dimension pairs for 30 test functions for PSO, sPSO and aPSO.}
+    \label{tab:rank small summary}
+\end{table}
+
+The results in Table \ref{tab:rank small summary} have a similar trend to the results found in Table \ref{tab:rank summary}. Of the three algorithms, aPSO performs the best, having the lowest average rank, followed by sPSO and PSO which have similar average ranks. One difference is that when considering only the three algorithms, the average rank of sPSO is slightly lower than that of PSO, compared to the two algorithms having the same rank when we consider all six algorithms together. This trend again agrees with our results from Section \ref{subsection:empirical convergence}.
+
+\subsection{Trends by Function Type}
+To consider if the type of function has an effect on the performance of the algorithms, we split our 30 test functions into four respective groups by whether they are unimodal or multimodal, and separable or non-separable. For each of the four groups, we calculate the average rank of each algorithm for all the functions in that group. The results are shown in Table \ref{tab:groups table}. \newline
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \input{tables/groups.tex}
+    }
+    \caption{Table of average ranks across 75 function-dimension pairs for 30 test functions, grouped by function classification, for all six algorithms.}
+    \label{tab:groups table}
+\end{table}
+
+The results show a similar trend to the results found in Section \ref{subsubsection:compareall min} with CSO having the lowest average rank across all groups. PSO and sPSO have similar average ranks across the groups, and have the highest average ranks among all six algorithms. However, there are some differences for aPSO, QPSO-T1 and QPSO-T2. For unimodal, non-separable functions, aPSO has a significantly lower average rank of $2.7$ compared to the average rank of $3.6$ and $3.5$ for QPSO-T1 and QPSO-T2 respectively. For both unimodal and multimodal separable functions, QPSO-T1 and QPSO-T2 have a lower average rank compared to aPSO. For multimodal and separable functions, the average ranks of the three algorithms are similar. Despite aPSO and the two QPSO algorithms having similar average ranks when we consider all 75 function-dimension pairs, there are still differences in their performance on different types of functions.
+
+\newpage
+
+\section{Conclusion}
+In this project, we discussed PSO, early modifications to the PSO velocity update and the non-convergence problems of PSO. Secondly, we introduce two popular variants of PSO, namely, CSO and QPSO. We discussed two enhancements to the PSO, namely, sPSO and aPSO. Two additional parameters $\eta$ and $\sigma$ are introduced in sPSO, and a data-driven framework to choose these parameters was introduced in aPSO. Despite only changing the velocity update procedure slightly, sPSO and aPSO are shown to have significant improvement in performance compared to PSO. Numerical experiments were also conducted to investigate the effect of the new parameters on the performance of sPSO and aPSO. sPSO was found to perform best with smaller values of $\eta$ and $\sigma$, and there was no significant difference in performance when using different parameters for aPSO. Next, we compared the performance of PSO, sPSO, aPSO, CSO and QPSO on a large class of 30 test functions. The algorithms were compared based on their global best values obtained, the time taken to run the algorithms, and the number of functional evaluations required. CSO was found to perform the best among all the algorithms, followed by aPSO and QPSO with similar performance. aPSO was also found to perform better on unimodal and non-separable functions compared to other types of functions.
+
+\newpage
+
+\section{Appendix}
+\subsection{List of 30 Test Functions}
+\label{subsection:function info}
+\renewcommand{\arraystretch}{0.6}
+\input{tables/funcinfo.tex}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+\subsection{Table of ranks for 30 Test Functions with PSO, sPSO, aPSO, CSO, QPSO-T1, QPSO-T2}
+\label{subsection:compareall ranks table}
+\renewcommand{\arraystretch}{0.6}
+\begin{footnotesize}
+\input{tables/compareall_ranks.tex}
+\end{footnotesize}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+\subsection{Table of time taken for 30 Test Functions with PSO, sPSO, aPSO, CSO, QPSO-T1, QPSO-T2}
+\label{subsection:time table}
+\renewcommand{\arraystretch}{0.6}
+\begin{footnotesize}
+\input{tables/time.tex}
+\end{footnotesize}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+\subsection{Table of ranks for 30 Test Functions with PSO, sPSO, aPSO}
+\label{subsection:comparesmall ranks table}
+\renewcommand{\arraystretch}{0.6}
+\begin{footnotesize}
+\input{tables/comparesmall_ranks}
+\end{footnotesize}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+\subsection{Table of results for varying values of sPSO parameters}
+\label{subsection:parameter spso}
+\renewcommand{\arraystretch}{0.6}
+\begin{footnotesize}
+\input{tables/parameter1.tex}
+\end{footnotesize}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+\subsection{Table of results for varying values of aPSO parameters}
+\label{subsection:parameter apso}
+\renewcommand{\arraystretch}{0.6}
+\begin{footnotesize}
+\input{tables/parameter2.tex}
+\end{footnotesize}
+\renewcommand{\arraystretch}{1}
+
+\newpage
+
+% \section{Summary}
+% \textbf{TBC}.
+
+% \newpage
+
+\singlespacing
+\bibliographystyle{unsrt}
+\bibliography{main}
+
+\end{document}
